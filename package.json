@@ -8,11 +8,13 @@
     "build:dev": "webpack",
     "build:prod": "webpack -p --env production",
     "dev-server": "webpack-dev-server",
-    "test": "jest"
+    "test": "jest",
+    "start": "node server/server.js",
+    "heroku-postbuild": "yarn run build:prod"
   },
   "dependencies": {
     "babel-cli": "6.24.1",
-    "babel-core": "6.25.0",
+    "babel-core": "^6.26.3",
     "babel-loader": "7.1.1",
     "babel-plugin-transform-class-properties": "6.24.1",
     "babel-plugin-transform-object-rest-spread": "6.23.0",
@@ -21,6 +23,7 @@
     "css-loader": "0.28.4",
     "enzyme": "3.0.0",
     "enzyme-adapter-react-16": "1.0.0",
+    "express": "^4.15.4",
     "extract-text-webpack-plugin": "3.0.0",
     "jest": "20.0.4",
     "live-server": "^1.2.1",
