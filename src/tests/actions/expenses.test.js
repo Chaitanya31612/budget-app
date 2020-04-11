@@ -1,4 +1,4 @@
-import { addExpense, removeExpense, editExpense, startAddExpense, setExpenses, startSetExpenses, startRemoveExpense } from '../../actions/expenses';
+import { addExpense, removeExpense, editExpense, startAddExpense, setExpenses, startSetExpenses, startRemoveExpense, startEditExpense } from '../../actions/expenses';
 import expenses from '../fixtures/expenses';
 import thunk from 'redux-thunk';
 import configureMockStore from 'redux-mock-store';
@@ -123,3 +123,21 @@ test('should delete expense from the database', (done) => {
         done();
     });
 });
+
+test('should update expense to the database', (done) => {
+    const id = expenses[0].id;
+    const updates = { description: 'A new one updated' };
+    const store = createMockStore({});
+    store.dispatch(startEditExpense(id, updates)).then(() => {
+        const actions = store.getActions();
+        expect(actions[0]).toEqual({
+            type: 'EDIT_EXPENSE',
+            id,
+            updates
+        });
+        return database.ref(`expenses/${id}`).once('value');
+    }).then((snapshot) => {
+        expect(snapshot.val().description).toBe(updates.description);
+        done();
+    });
+})
