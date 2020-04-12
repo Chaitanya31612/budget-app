@@ -4,6 +4,8 @@ import thunk from 'redux-thunk';
 import configureMockStore from 'redux-mock-store';
 import database from '../../firebase/firebase';
 
+const uid = 'thisistestuid';
+const defaultAuthState = { auth: { uid } };
 const createMockStore = configureMockStore([thunk]);
 
 beforeEach((done) => {
@@ -11,7 +13,7 @@ beforeEach((done) => {
     expenses.forEach(({ id, description, amount, note, createdAt }) => {
         expenseData[id] = { description, amount, note, createdAt };
     });
-    database.ref('expenses').set(expenseData).then(() => done());
+    database.ref(`users/${uid}/expenses`).set(expenseData).then(() => done());
 });
 
 test('Should setup remove expense', () => {
@@ -40,7 +42,7 @@ test('Should setup add expense with provided data', () => {
 });
 
 test('should add expense to database and store', (done) => {
-    const store = createMockStore({}); 
+    const store = createMockStore(defaultAuthState); 
     const expenseData = {
         description: 'Mouse',
         amount: 3444,
@@ -57,7 +59,7 @@ test('should add expense to database and store', (done) => {
                 ...expenseData
             }
         });
-        return database.ref(`expenses/${actions[0].expense.id}`).once('value');
+        return database.ref(`users/${uid}/expenses/${actions[0].expense.id}`).once('value');
     }).then((snapshot) => {
         expect(snapshot.val()).toEqual(expenseData);
         done();
@@ -65,7 +67,7 @@ test('should add expense to database and store', (done) => {
 });
 
 test('should add expense to database and store with default', (done) => {
-    const store = createMockStore({}); 
+    const store = createMockStore(defaultAuthState); 
     const expenseDefaults = {
         description: '',
         amount: 0,
@@ -82,7 +84,7 @@ test('should add expense to database and store with default', (done) => {
                 ...expenseDefaults
             }
         });
-        return database.ref(`expenses/${actions[0].expense.id}`).once('value');
+        return database.ref(`users/${uid}/expenses/${actions[0].expense.id}`).once('value');
     }).then((snapshot) => {
         expect(snapshot.val()).toEqual(expenseDefaults);
         done();
@@ -98,7 +100,7 @@ test('should set expenses action object with data', () => {
 });
 
 test('should fetch expenses from database', (done) => {
-    const store = createMockStore({});
+    const store = createMockStore(defaultAuthState);
     store.dispatch(startSetExpenses()).then(() => {
         const actions = store.getActions();
         expect(actions[0]).toEqual({
@@ -110,14 +112,14 @@ test('should fetch expenses from database', (done) => {
 });
 
 test('should delete expense from the database', (done) => {
-    const store = createMockStore({});
+    const store = createMockStore(defaultAuthState);
     store.dispatch(startRemoveExpense({ id: '123' })).then(() => {
         const actions = store.getActions();
         expect(actions[0]).toEqual({
             type: 'REMOVE_EXPENSE',
             id: '123'
         });
-        return database.ref(`expenses/${actions[0].id}`).once('value');
+        return database.ref(`users/${uid}/expenses/${actions[0].id}`).once('value');
     }).then((snapshot) => {
         expect(snapshot.val()).toBeFalsy();
         done();
@@ -125,9 +127,9 @@ test('should delete expense from the database', (done) => {
 });
 
 test('should update expense to the database', (done) => {
+    const store = createMockStore(defaultAuthState);
     const id = expenses[0].id;
     const updates = { description: 'A new one updated' };
-    const store = createMockStore({});
     store.dispatch(startEditExpense(id, updates)).then(() => {
         const actions = store.getActions();
         expect(actions[0]).toEqual({
@@ -135,7 +137,7 @@ test('should update expense to the database', (done) => {
             id,
             updates
         });
-        return database.ref(`expenses/${id}`).once('value');
+        return database.ref(`users/${uid}/expenses/${id}`).once('value');
     }).then((snapshot) => {
         expect(snapshot.val().description).toBe(updates.description);
         done();
